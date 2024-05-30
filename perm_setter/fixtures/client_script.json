@@ -1,0 +1,24 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "DocType",
+  "enabled": 1,
+  "modified": "2024-05-28 16:32:35.056527",
+  "module": "ISCO App",
+  "name": "GetText DocType",
+  "script": "frappe.ui.form.on('DocType', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Check Permission",
+  "enabled": 1,
+  "modified": "2024-05-30 19:55:26.261994",
+  "module": "perm_setter",
+  "name": "Grant Permission",
+  "script": "frappe.ui.form.on('Check Permission', {\n    refresh: function(frm) {\n        // Кнопка для проверки разрешений\n        frm.add_custom_button(__('Check Permissions'), function() {\n            frappe.call({\n                method: \"perm_setter.api.permission_handler.check_permissions\",\n                args: { doctype: frm.doc.doctype },\n                callback: function(r) {\n                    if (!r.exc) {\n                        frm.clear_table(\"permissions_table\");\n                        $.each(r.message, function(role, perms) {\n                            var row = frm.add_child(\"permissions_table\");\n                            row.role = role;\n                            row.read = perms.read;\n                            row.write = perms.write;\n                            row.create = perms.create;\n                            row.delete = perms.delete;\n                            frm.refresh_field(\"permissions_table\");\n                        });\n                    }\n                }\n            });\n        });\n\n        // Форма для предоставления разрешений\n        frm.add_custom_button(__('Grant Permissions'), function() {\n            var dialog = new frappe.ui.Dialog({\n                title: __(\"Enter Details\"),\n                fields: [\n                    {\n                        label: 'Role',\n                        fieldname: 'role',\n                        fieldtype: 'Link',\n                        options: 'Role'\n                    },\n                    {\n                        label: 'Read',\n                        fieldname: 'read',\n                        fieldtype: 'Check'\n                    },\n                    {\n                        label: 'Write',\n                        fieldname: 'write',\n                        fieldtype: 'Check'\n                    },\n                    {\n                        label: 'Create',\n                        fieldname: 'create',\n                        fieldtype: 'Check'\n                    },\n                    {\n                        label: 'Delete',\n                        fieldname: 'delete',\n                        fieldtype: 'Check'\n                    }\n                ],\n                primary_action_label: __(\"Grant\"),\n                primary_action(values) {\n                    frappe.call({\n                        method: \"perm_setter.api.permission_handler.grant_permissions\",\n                        args: {\n                            doctype: frm.doc.doctype,\n                            role: values.role,\n                            permissions: {\n                                read: values.read,\n                                write: values.write,\n                                create: values.create,\n                                delete: values.delete\n                            }\n                        },\n                        callback: function(r) {\n                            if (!r.exc) {\n                                frappe.msgprint(__('Permissions granted successfully'));\n                                dialog.hide();\n                            }\n                        }\n                    });\n                }\n            });\n            dialog.show();\n        });\n    }\n});\n",
+  "view": "Form"
+ }
+]

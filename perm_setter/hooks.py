@@ -220,6 +220,15 @@ app_license = "mit"
 # 	"perm_setter.auth.validate"
 # ]
 
+api_methods = {
+    "perm_setter.api.permission_handler.check_permissions": "perm_setter.api.permission_handler.check_permissions",
+    "perm_setter.api.permission_handler.grant_permissions": "perm_setter.api.permission_handler.grant_permissions",
+}
+
+fixtures = [
+            "Client Script",
+           ]
+
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True
 
