@@ -221,12 +221,13 @@ app_license = "mit"
 # ]
 
 api_methods = {
-    "perm_setter.api.permission_handler.check_permissions": "perm_setter.api.permission_handler.check_permissions",
+    "perm_setter.api.permission_handler.get_all_doctypes": "perm_setter.api.permission_handler.get_all_doctypes",
+    "perm_setter.api.permission_handler.get_permissions": "perm_setter.api.permission_handler.get_permissions",
     "perm_setter.api.permission_handler.grant_permissions": "perm_setter.api.permission_handler.grant_permissions",
 }
 
-fixtures = [
-            "Client Script",
+fixtures = [    
+            "Role",
            ]
 
 # Automatically update python controller files with type annotations for this app.

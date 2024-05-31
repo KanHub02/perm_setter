@@ -1,40 +1,32 @@
 import frappe
+import json
 
 @frappe.whitelist()
-def check_permissions(doctype):
-    if not frappe.session.user:
-        frappe.throw("You must be logged in to access this functionality.", frappe.PermissionError)
-    if not frappe.has_permission(doctype, "read"):
-        frappe.throw("You do not have the necessary permissions to check this DocType.", frappe.PermissionError)
+def get_all_doctypes():
+    doctypes = frappe.get_all("DocType", fields=["name"])
+    return doctypes
 
-    try:
-        permissions = frappe.get_all('DocPerm', fields=['role', 'permlevel', 'read', 'write', 'create', 'delete'], filters={'parent': doctype})
-        roles_with_permissions = {}
-        for perm in permissions:
-            role = perm['role']
-            if role not in roles_with_permissions:
-                roles_with_permissions[role] = {
-                    'permlevel': perm['permlevel'],
-                    'read': perm['read'],
-                    'write': perm['write'],
-                    'create': perm['create'],
-                    'delete': perm['delete']
-                }
-        return roles_with_permissions
-    except Exception as e:
-        frappe.throw(f"Error checking permissions: {str(e)}")
+@frappe.whitelist()
+def get_permissions(doctype):
+    permissions = frappe.get_all("DocPerm", filters={"parent": doctype}, fields=["role", "read", "write", "create", "delete", "print", "email", "export", "report", "share"])
+    return permissions
+
 
 @frappe.whitelist()
 def grant_permissions(doctype, role, permissions):
+    print("-----------------------------",doctype)
     if not frappe.session.user:
         frappe.throw("You must be logged in to perform this action.", frappe.PermissionError)
     if not frappe.has_permission(doctype, "write"):
         frappe.throw("You do not have permission to modify permissions for this DocType.", frappe.PermissionError)
 
+    permissions_dict = json.loads(permissions)
+
     if not frappe.db.exists('Role', 'Permission Provider'):
         frappe.get_doc({'doctype': 'Role', 'role_name': 'Permission Provider'}).insert()
 
     user_roles = frappe.get_roles(frappe.session.user)
+    print(user_roles)
     if 'Permission Provider' not in user_roles:
         frappe.throw("You must have 'Permission Provider' role to grant permissions.", frappe.PermissionError)
 
@@ -45,10 +37,10 @@ def grant_permissions(doctype, role, permissions):
         'parentfield': 'permissions',
         'parenttype': 'DocType',
         'role': role,
-        'read': permissions.get('read', 0),
-        'write': permissions.get('write', 0),
-        'create': permissions.get('create', 0),
-        'delete': permissions.get('delete', 0)
+        'read': permissions_dict.get('read', 0),
+        'write': permissions_dict.get('write', 0),
+        'create': permissions_dict.get('create', 0),
+        'delete': permissions_dict.get('delete', 0)
     })
     if existing_perm:
         docperm.name = existing_perm[0]['name']
